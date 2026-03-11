@@ -1,0 +1,12 @@
+{
+  "name": "skills-to-dify-workflow",
+  "version": "1.0.0",
+  "description": "Converts Claude Code skill folders into Dify-importable workflow YAML with visual preview",
+  "author": {
+    "name": "r-hashi01",
+    "url": "https://github.com/r-hashi01"
+  },
+  "repository": "https://github.com/r-hashi01/skills-to-dify-workflow",
+  "license": "Apache-2.0",
+  "keywords": ["dify", "workflow", "skill-converter", "visualization", "yaml"]
+}
