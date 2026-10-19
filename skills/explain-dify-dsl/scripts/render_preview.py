@@ -109,6 +109,24 @@ h1.page { font-size: 28px; line-height: 1.3; margin: 0 0 8px; }
 .content p, .content ul, .content ol, .content blockquote, .content table, .content pre, .content figure { margin: 0 0 1em; }
 .content ul, .content ol { padding-left: 1.5em; }
 .content li { margin: .25em 0; }
+.callout { border: 1px solid var(--co-bd); border-left-width: 4px; background: var(--co-bg); border-radius: 8px; padding: 10px 14px; margin: 0 0 1em; }
+.callout-title { font-weight: 600; }
+details.callout > summary { cursor: pointer; list-style: none; }
+details.callout > summary::before { content: "▸"; display: inline-block; width: 1.1em; color: var(--muted); transition: transform .15s; }
+details.callout[open] > summary::before { transform: rotate(90deg); }
+.callout-body { margin-top: 8px; }
+.callout-body > :last-child { margin-bottom: 0; }
+.callout.note { --co-bd: #54aeff; --co-bg: #ddf4ff33; }
+.callout.tip { --co-bd: #4ac26b; --co-bg: #dafbe133; }
+.callout.important { --co-bd: #a475f9; --co-bg: #fbefff44; }
+.callout.warning { --co-bd: #d4a72c; --co-bg: #fff8c544; }
+.callout.danger { --co-bd: #ff8182; --co-bg: #ffebe944; }
+.sev { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 9px; border-radius: 999px; white-space: nowrap; }
+.sev.high { background: #ffebe9; color: #b42318; border: 1px solid #ffb4ab; }
+.sev.medium { background: #fff8c5; color: #7d4e00; border: 1px solid #eac54f; }
+.sev.low { background: #ddf4ff; color: #0550ae; border: 1px solid #80ccff; }
+.content td { min-width: 9em; }
+.content td.sev-cell { min-width: 0; white-space: nowrap; text-align: center; }
 .content blockquote { margin-left: 0; padding: 6px 16px; border-left: 4px solid var(--border); background: var(--panel); border-radius: 0 6px 6px 0; }
 .content table { border-collapse: collapse; width: 100%; display: block; overflow-x: auto; font-size: 14px; }
 .content th, .content td { border: 1px solid var(--border); padding: 7px 11px; text-align: left; vertical-align: top; }
@@ -238,6 +256,18 @@ svg .elabel text { font-size: 10px; fill: var(--muted); }
     }
     if (last < text.length) parent.appendChild(document.createTextNode(text.slice(last)));
   }
+  const CALLOUT = { note: "note", info: "note", tip: "tip", important: "important", warning: "warning",
+    caution: "danger", danger: "danger", bug: "danger", question: "note", example: "tip" };
+  // A table cell that is only a severity word becomes a colored badge.
+  const SEVERITY = { "重大": "high", "高": "high", "high": "high", "critical": "high", "中": "medium", "medium": "medium",
+    "低": "low", "low": "low" };
+  function severityCell(td, text) {
+    const level = SEVERITY[text.trim().toLowerCase()];
+    if (!level) return false;
+    td.appendChild(h("span", "sev " + level, text.trim()));
+    td.classList.add("sev-cell");
+    return true;
+  }
   function renderMarkdown(container, src, refs, hooks) {
     const lines = src.replace(/\r\n?/g, "\n").split("\n");
     let i = 0;
@@ -257,10 +287,21 @@ svg .elabel text { font-size: 10px; fill: var(--muted); }
       }
       const pre = h("pre"), c = h("code"); rich(c, buf.join("\n")); pre.appendChild(c); return pre;
     }
+    // Blockquote, or a callout: "> [!WARNING] Title" (boxed), "> [!NOTE]- Title" (collapsed), "> [!TIP]+ Title" (open).
     function quote() {
-      const bq = h("blockquote"), buf = [];
+      const buf = [];
       while (i < lines.length && /^\s*>/.test(lines[i])) { buf.push(lines[i].replace(/^\s*>\s?/, "")); i++; }
-      renderMarkdown(bq, buf.join("\n"), refs); return bq;
+      const m = buf[0].match(/^\[!(\w+)\]([+-]?)\s*(.*)$/);
+      if (!m) { const bq = h("blockquote"); renderMarkdown(bq, buf.join("\n"), refs); return bq; }
+      const kind = CALLOUT[m[1].toLowerCase()] || "note", fold = m[2];
+      const box = h(fold ? "details" : "div", "callout " + kind);
+      if (fold === "+") box.open = true;
+      const head = h(fold ? "summary" : "div", "callout-title");
+      inline(head, m[3] || m[1], refs);
+      box.appendChild(head);
+      const inner = h("div", "callout-body"); renderMarkdown(inner, buf.slice(1).join("\n"), refs);
+      if (inner.childNodes.length) box.appendChild(inner);
+      return box;
     }
     function list(start, ordered) {
       const el = h(ordered ? "ol" : "ul"), base = lines[start].match(/^\s*/)[0].length;
@@ -292,7 +333,7 @@ svg .elabel text { font-size: 10px; fill: var(--muted); }
         for (const c of cells(line)) { const x = h("th"); inline(x, c, refs); tr.appendChild(x); }
         th.appendChild(tr); t.appendChild(th); i += 2;
         while (i < lines.length && lines[i].includes("|") && lines[i].trim()) {
-          const r = h("tr"); for (const c of cells(lines[i])) { const x = h("td"); inline(x, c, refs); r.appendChild(x); }
+          const r = h("tr"); for (const c of cells(lines[i])) { const x = h("td"); severityCell(x, c) || inline(x, c, refs); r.appendChild(x); }
           tb.appendChild(r); i++;
         }
         t.appendChild(tb); container.appendChild(t); continue;

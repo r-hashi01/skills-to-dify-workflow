@@ -60,6 +60,12 @@ Diagrams. Concept pages show only the diagrams you put there; nothing is inserte
   Syntax: `id[Title<br>detail<br>detail]`, `id(…)`, `id{Decision}`; edges `-->`, `-.->`, `==>` with optional `|label|`; chains allowed. An `id` equal to a real node ID links to its page and takes its color (its real name appears as the small bottom line); other ids are free-form boxes, colored with `:::llm`, `:::tool`, `:::condition`, `:::loop`, `:::template`, `:::human`, `:::start`, or `:::end`.
 - **`[[diagram]]` line — small, connected parts only.** Draws the real nodes the page links to plus the nodes between them, each with an automatic one-line summary. It is skipped if those nodes do not form one connected graph, so use it only when the page's nodes are directly linked (e.g. three consecutive steps).
 
+Writing style — readers scan before they read:
+- Lead each page and section with its point in one or two sentences. Then structure, not prose: bullets with one fact each, tables for anything compared across items, numbered steps for sequences.
+- Paragraphs are at most two sentences. If a section needs more, it needs a table or bullets.
+- Put long material in collapsed callouts so the page stays short: full prompt quotes, per-item details, examples. `> [!NOTE]- Title` (collapsed), `> [!TIP]+ Title` (open), `> [!WARNING] Title` (boxed, not collapsible).
+- Do not restate what the node pages show (every setting, every field); link to them.
+
 Pages to write:
 
 ```markdown
@@ -82,7 +88,7 @@ Pages to write:
 <A ```flow diagram of this stage near the top (or [[diagram]] if the stage is a short chain of directly linked nodes).
  What this stage does and why, in prose.
  For each AI step in the stage, what its prompt tells the model:
- - Short prompt (≈15 lines or fewer): quote it in full, in its original language.
+ - Short prompt (≈15 lines or fewer): quote it in full, in its original language, in a collapsed callout if it is longer than 5 lines.
  - Longer prompt: break it down — Role; Given (which inputs, linked); Instructions and rules (every rule that changes the
    result: categories with definitions, criteria, thresholds, prohibitions, grounding requirements, quoted verbatim);
    Output (format and each field's meaning).
@@ -91,16 +97,28 @@ Pages to write:
  Templates and code that shape the output: what they produce, quoting the key parts.>
 
 # Things to watch
-<At most 5 items, most important first; anything else as one-line "Other" bullets.
- Each item links its evidence ([[node_id › field]]). Mark claims that rely on outside knowledge rather than the DSL
- (e.g. how an external API reports errors) as "(general knowledge, not in the DSL)".
- Sources: validator FAILs and breaking legacy shapes, security flags, fragile design such as branching on whether LLM text
- "contains" a word, no error handling on external calls, mismatches between input labels and actual use.>
+<Start with the summary table, one row per issue, most severe first:
+
+| 重要度 | 問題 | 場所 | 直し方 |
+|---|---|---|---|
+| 高 | 報告書の生成が毎回失敗する | [[generate_final_report › template]] | 変数名を `classify_applicable_categories_applicable_categories` に直す |
+
+ Severity is exactly one word, rendered as a badge: 高 / 中 / 低 (High / Medium / Low): 高 = the app fails, or data goes
+ somewhere it should not; 中 = wrong results in some cases; 低 = maintainability or cleanup. "Problem" and "Fix" are one
+ short line each. Validator FAILs and breaking legacy shapes belong here; if nothing is notable, say so in one line.
+ Then "## 詳細" (Details) with one collapsed callout per row, same title as the row, 2–4 bullets: cause, effect, evidence.
+ Mark claims from outside knowledge rather than the DSL as "(general knowledge, not in the DSL)".
+
+> [!CAUTION]- 報告書の生成が毎回失敗する
+> - 原因: テンプレートが未定義の `classify_applicable_categories` を参照
+> - 影響: どの請求でも報告書が出ない
+>
+ Use [!CAUTION] for 高, [!WARNING] for 中, [!NOTE] for 低.>
 ```
 
 Small apps (a few nodes) may skip the stage pages and put the prompt explanation in "How it works". Do not shorten branch conditions or the prompt explanation to keep the text brief: they are the core of the explanation.
 
-Supported Markdown: `##`–`####` headings, ` ```flow ` diagrams, paragraphs, nested lists, numbered lists, code fences, blockquotes (also inside list items), tables, `inline code`, **bold**, http(s) links, and the `[[…]]` links above.
+Supported Markdown: `##`–`####` headings, ` ```flow ` diagrams, callouts (`> [!NOTE]`, `> [!TIP]`, `> [!IMPORTANT]`, `> [!WARNING]`, `> [!CAUTION]`, with `-` / `+` to collapse), severity badges (a table cell containing only 高 / 中 / 低 or High / Medium / Low), paragraphs, nested lists, numbered lists, code fences, blockquotes (also inside list items), tables, `inline code`, **bold**, http(s) links, and the `[[…]]` links above.
 
 ### 5. Render the page
 
