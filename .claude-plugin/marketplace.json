@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Plugin that converts Claude Code skills into Dify workflow YAML",
-    "version": "1.0.0"
+    "version": "1.1.0"
   },
   "plugins": [
     {
@@ -16,7 +16,7 @@
         "url": "https://github.com/r-hashi01/skills-to-dify-workflow.git"
       },
       "description": "Converts Claude Code skill folders into Dify-importable workflow YAML with visual preview and security review",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "r-hashi01",
         "url": "https://github.com/r-hashi01"
